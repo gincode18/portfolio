@@ -2,7 +2,7 @@
 
 export function MobileShell() {
   return (
-    <div className="fixed inset-0 overflow-hidden bg-gradient-to-b from-indigo-900 via-purple-900 to-slate-900 text-white">
+    <div className="fixed inset-0 overflow-hidden bg-linear-to-b from-indigo-900 via-purple-900 to-slate-900 text-white">
       <StatusBar />
       <HomeGrid />
       <HomeIndicator />

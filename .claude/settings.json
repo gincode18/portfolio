@@ -14,7 +14,10 @@
       "Read(//tmp/**)",
       "Bash(kill 30859)",
       "Bash(pkill -f \"next dev\")",
-      "Bash(pnpm build *)"
+      "Bash(pnpm build *)",
+      "Bash(curl -s -o /tmp/home.html -w \"%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(grep -E \"Vishal OS|boot|press\" /tmp/home.html | head -3 *)",
+      "Read(//private/tmp/**)"
     ]
   }
 }

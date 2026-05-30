@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo *)",
+      "WebFetch(domain:github.com)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(pnpm install *)",
+      "Bash(npx tsx *)",
+      "Bash(pnpm dev *)",
+      "Bash(curl -s -o /dev/null -w \"HOME: %{http_code}\\\\n\" http://localhost:3000)",
+      "Bash(curl -s http://localhost:3000/healthz)",
+      "Bash(kill %1)",
+      "Read(//tmp/**)",
+      "Bash(kill 30859)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(pnpm build *)"
+    ]
+  }
+}

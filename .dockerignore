@@ -1,0 +1,14 @@
+.git
+.gitignore
+.next
+node_modules
+data
+infra/.env
+*.log
+.DS_Store
+.vscode
+.idea
+.claude
+Vishal_Resume_26.pdf
+README.md
+plan.md

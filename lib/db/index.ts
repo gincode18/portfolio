@@ -1,3 +1,4 @@
 import "server-only";
 
-export { getDb, smokeTest } from "./sqlite";
+export { getDb, getRaw, smokeTest, schema } from "./client";
+export * from "./schema";

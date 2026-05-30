@@ -8,13 +8,17 @@
     "start": "next start",
     "lint": "eslint",
     "ingest": "tsx scripts/ingest.ts",
-    "db:smoke": "tsx scripts/db-smoke.ts"
+    "db:smoke": "tsx scripts/db-smoke.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@google/genai": "^2.7.0",
     "better-sqlite3": "^12.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.17.0",
     "motion": "^12.40.0",
     "next": "16.2.6",
@@ -35,6 +39,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",

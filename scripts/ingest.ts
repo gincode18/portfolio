@@ -1,11 +1,12 @@
 // Ingest content/* into rag_chunks + rag_embeddings.
 //
 // Usage:
-//   GEMINI_API_KEY=... npx tsx scripts/ingest.ts
+//   GEMINI_API_KEY=... pnpm ingest
 //
 // Idempotent: clears all existing chunks first, then re-inserts.
 
-import { getDb } from "../lib/db/sqlite";
+import { getDb, getRaw } from "../lib/db/client";
+import { ragChunks } from "../lib/db/schema";
 import { embedBatch } from "../lib/pi/embed";
 import { collectChunks } from "../lib/pi/sources";
 
@@ -18,36 +19,49 @@ async function main() {
   }
 
   const db = getDb();
+  const raw = getRaw();
+
   const chunks = collectChunks();
   console.log(`collected ${chunks.length} chunks`);
 
   console.log("clearing existing index…");
-  db.exec("DELETE FROM rag_embeddings");
-  db.exec("DELETE FROM rag_chunks");
+  raw.exec("DELETE FROM rag_embeddings");
+  await db.delete(ragChunks);
 
   console.log("embedding…");
-  const texts = chunks.map((c) => c.text);
-  const vectors = await embedBatch(texts);
+  const vectors = await embedBatch(chunks.map((c) => c.text));
 
   console.log("writing…");
-  const insertChunk = db.prepare(
-    `INSERT INTO rag_chunks (source, chunk_index, text, metadata) VALUES (?, 0, ?, ?)`
-  );
-  const insertEmbed = db.prepare(
-    `INSERT INTO rag_embeddings (chunk_id, embedding) VALUES (?, ?)`
+  const insertEmbed = raw.prepare(
+    "INSERT INTO rag_embeddings (chunk_id, embedding) VALUES (?, ?)"
   );
 
-  const tx = db.transaction(() => {
+  // Wrap in a single transaction using the underlying connection — Drizzle's
+  // own .transaction() also works, but we need raw.prepare for the vec0 insert
+  // so it's simpler to use one transaction primitive for both.
+  raw.exec("BEGIN");
+  try {
     for (let i = 0; i < chunks.length; i++) {
       const c = chunks[i];
-      const res = insertChunk.run(c.source, c.text, JSON.stringify(c.metadata));
-      const id = Number(res.lastInsertRowid);
+      const [{ id }] = await db
+        .insert(ragChunks)
+        .values({
+          source: c.source,
+          chunkIndex: 0,
+          text: c.text,
+          metadata: c.metadata,
+        })
+        .returning({ id: ragChunks.id });
+
       insertEmbed.run(BigInt(id), Buffer.from(vectors[i].buffer));
     }
-  });
-  tx();
+    raw.exec("COMMIT");
+  } catch (err) {
+    raw.exec("ROLLBACK");
+    throw err;
+  }
 
-  const { count } = db
+  const { count } = raw
     .prepare("SELECT COUNT(*) AS count FROM rag_embeddings")
     .get() as { count: number };
   console.log(`done — ${count} chunks indexed`);

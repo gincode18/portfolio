@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db/sqlite";
+import { getRaw } from "@/lib/db/client";
 import { embedOne } from "@/lib/pi/embed";
 
 export type ChunkHit = {
@@ -10,7 +10,14 @@ export type ChunkHit = {
 };
 
 export type ChunkMetadata = {
-  kind: "profile" | "education" | "experience" | "project" | "note" | "skills" | "achievement";
+  kind:
+    | "profile"
+    | "education"
+    | "experience"
+    | "project"
+    | "note"
+    | "skills"
+    | "achievement";
   id?: string;
   title?: string;
   // Optional explicit routing hint for tool calls (e.g. open the projects window
@@ -20,22 +27,23 @@ export type ChunkMetadata = {
     | { type: "openExternalLink"; url: string };
 };
 
-export async function retrieve(
-  query: string,
-  k = 6
-): Promise<ChunkHit[]> {
-  const db = getDb();
+/**
+ * Vector search over rag_embeddings. We use the raw better-sqlite3 connection
+ * here because rag_embeddings is a sqlite-vec virtual table whose MATCH
+ * operator is not expressible in Drizzle's query builder. Everything else in
+ * the project goes through Drizzle.
+ */
+export async function retrieve(query: string, k = 6): Promise<ChunkHit[]> {
+  const raw = getRaw();
 
-  // If we haven't ingested yet, there will be no embeddings — caller should
-  // fall back to inline context.
-  const { count } = db
+  const { count } = raw
     .prepare("SELECT COUNT(*) AS count FROM rag_embeddings")
     .get() as { count: number };
   if (count === 0) return [];
 
   const vec = await embedOne(query);
 
-  const rows = db
+  const rows = raw
     .prepare(
       `SELECT c.id AS chunkId, c.source, c.text, c.metadata, e.distance
        FROM rag_embeddings e

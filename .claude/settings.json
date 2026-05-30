@@ -30,7 +30,9 @@
       "Bash(curl -sN -X POST http://localhost:3000/api/pi -H 'content-type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}')",
       "Bash(curl -s -X POST http://localhost:3000/api/pi -H 'content-type: application/json' -d '{\"messages\":[]}' -w '\\\\nHTTP %{http_code}\\\\n')",
       "Bash(curl -s -X POST http://localhost:3000/api/pi -H 'content-type: application/json' -d '{\"messages\":[{\"role\":\"assistant\",\"content\":\"hi\"}]}' -w '\\\\nHTTP %{http_code}\\\\n')",
-      "Bash(pnpm db:smoke)"
+      "Bash(pnpm db:smoke)",
+      "Bash(pnpm drizzle-kit *)",
+      "Bash(pnpm db:migrate)"
     ],
     "additionalDirectories": [
       "/Users/gincode/Downloads"

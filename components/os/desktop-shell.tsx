@@ -8,6 +8,8 @@ import { APPS, DOCK_ORDER, type AppId } from "@/lib/apps/registry";
 import { WindowFrame } from "@/components/os/window";
 import { BootAnimation } from "@/components/os/boot-animation";
 import { Clock } from "@/components/os/clock";
+import { Spotlight } from "@/components/os/spotlight";
+import { useSpotlight } from "@/lib/store/spotlight";
 import { useOsShortcuts } from "@/lib/hooks/use-os-shortcuts";
 
 export function DesktopShell() {
@@ -20,6 +22,7 @@ export function DesktopShell() {
       <Desktop />
       <Windows />
       <Dock />
+      <Spotlight />
       {!booted && <BootAnimation onDone={() => setBooted(true)} />}
     </div>
   );
@@ -36,6 +39,7 @@ function MenuBar() {
         <MenuLink appId="system-preferences" label="Settings" />
       </div>
       <div className="flex items-center gap-3 opacity-90">
+        <SpotlightTrigger />
         <a
           href={profile.links.github}
           target="_blank"
@@ -55,6 +59,20 @@ function MenuBar() {
         <Clock />
       </div>
     </div>
+  );
+}
+
+function SpotlightTrigger() {
+  const toggle = useSpotlight((s) => s.toggle);
+  return (
+    <button
+      onClick={toggle}
+      className="flex items-center gap-1 rounded px-1.5 py-0.5 opacity-70 hover:bg-white/10 hover:opacity-100"
+      aria-label="Open Spotlight"
+      title="Spotlight — ⌘K"
+    >
+      <span>⌘K</span>
+    </button>
   );
 }
 

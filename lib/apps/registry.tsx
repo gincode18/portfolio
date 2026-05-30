@@ -5,13 +5,15 @@ import { AboutApp } from "@/components/os/apps/about";
 import { ProjectsApp } from "@/components/os/apps/projects";
 import { ExperienceApp } from "@/components/os/apps/experience";
 import { SystemPreferencesApp } from "@/components/os/apps/system-preferences";
-import { TerminalPlaceholderApp } from "@/components/os/apps/terminal-placeholder";
+import { TerminalApp } from "@/components/os/apps/terminal";
+import { PreviewApp } from "@/components/os/apps/preview";
 import { PiPlaceholderApp } from "@/components/os/apps/pi-placeholder";
 
 export type AppId =
   | "about"
   | "projects"
   | "experience"
+  | "preview"
   | "system-preferences"
   | "terminal"
   | "pi";
@@ -62,9 +64,17 @@ export const APPS: Record<AppId, AppDef> = {
     id: "terminal",
     title: "Terminal",
     dockLabel: "Terminal",
-    width: 640,
-    height: 400,
-    render: () => <TerminalPlaceholderApp />,
+    width: 700,
+    height: 460,
+    render: () => <TerminalApp />,
+  },
+  preview: {
+    id: "preview",
+    title: "Preview — resume.pdf",
+    dockLabel: "Resume",
+    width: 760,
+    height: 600,
+    render: () => <PreviewApp />,
   },
   pi: {
     id: "pi",
@@ -82,5 +92,6 @@ export const DOCK_ORDER: AppId[] = [
   "about",
   "projects",
   "experience",
+  "preview",
   "system-preferences",
 ];

@@ -17,7 +17,18 @@
       "Bash(pnpm build *)",
       "Bash(curl -s -o /tmp/home.html -w \"%{http_code}\\\\n\" http://localhost:3000/)",
       "Bash(grep -E \"Vishal OS|boot|press\" /tmp/home.html | head -3 *)",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(cat /Users/gincode/DEV/portfolio/.gitignore | head -30 && echo \"---\" && find /Users/gincode/DEV/portfolio -maxdepth 3 -iname \"*.pdf\" 2>/dev/null | head -5 && echo \"--- broader ---\" && find ~/Downloads ~/Desktop -maxdepth 2 -iname \"*resume*\" 2>/dev/null | head -5)",
+      "Read(//Users/gincode/Downloads/**)",
+      "Bash(cp ~/Downloads/Vishal_Resume_26.pdf /Users/gincode/DEV/portfolio/public/resume.pdf && ls -lh /Users/gincode/DEV/portfolio/public/resume.pdf)",
+      "Bash(curl -s -X POST http://localhost:3000/api/terminal -H 'content-type: application/json' -d '{\"input\":\"whoami\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/terminal -H 'content-type: application/json' -d '{\"input\":\"rm -rf /\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/terminal -H 'content-type: application/json' -d '{\"input\":\"projects --filter=ai\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/terminal -H 'content-type: application/json' -d '{\"input\":\"ask pi \\\\\"what is your stack\\\\\"\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}b\\\\n\" http://localhost:3000/resume.pdf)"
+    ],
+    "additionalDirectories": [
+      "/Users/gincode/Downloads"
     ]
   }
 }

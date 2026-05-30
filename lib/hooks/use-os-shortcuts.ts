@@ -2,12 +2,14 @@
 
 import { useEffect } from "react";
 import { useWindows } from "@/lib/store/windows";
-import { APPS, type AppId } from "@/lib/apps/registry";
+import { useSpotlight } from "@/lib/store/spotlight";
 
 export function useOsShortcuts() {
   const closeFocused = useWindows((s) => s.closeFocused);
   const minimizeFocused = useWindows((s) => s.minimizeFocused);
-  const openApp = useWindows((s) => s.openApp);
+  const toggleSpotlight = useSpotlight((s) => s.toggle);
+  const hideSpotlight = useSpotlight((s) => s.hide);
+  const spotlightOpen = useSpotlight((s) => s.open);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -17,6 +19,15 @@ export function useOsShortcuts() {
         target?.tagName === "INPUT" ||
         target?.tagName === "TEXTAREA" ||
         (target as HTMLElement | null)?.isContentEditable;
+
+      // Spotlight: Cmd/Ctrl + K, or Cmd/Ctrl + Space.
+      if (meta && (e.key.toLowerCase() === "k" || e.code === "Space")) {
+        e.preventDefault();
+        toggleSpotlight();
+        return;
+      }
+
+      if (spotlightOpen) return; // Spotlight handles its own keys.
 
       if (meta && e.key.toLowerCase() === "w" && !isTyping) {
         e.preventDefault();
@@ -28,21 +39,15 @@ export function useOsShortcuts() {
         minimizeFocused();
         return;
       }
-      if (meta && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        const id: AppId = "pi";
-        openApp(id, {
-          title: APPS[id].title,
-          width: APPS[id].width,
-          height: APPS[id].height,
-        });
-        return;
-      }
       if (e.key === "Escape" && !isTyping) {
-        closeFocused();
+        if (spotlightOpen) {
+          hideSpotlight();
+        } else {
+          closeFocused();
+        }
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeFocused, minimizeFocused, openApp]);
+  }, [closeFocused, minimizeFocused, toggleSpotlight, hideSpotlight, spotlightOpen]);
 }

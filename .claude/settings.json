@@ -25,7 +25,11 @@
       "Bash(curl -s -X POST http://localhost:3000/api/terminal -H 'content-type: application/json' -d '{\"input\":\"rm -rf /\"}')",
       "Bash(curl -s -X POST http://localhost:3000/api/terminal -H 'content-type: application/json' -d '{\"input\":\"projects --filter=ai\"}')",
       "Bash(curl -s -X POST http://localhost:3000/api/terminal -H 'content-type: application/json' -d '{\"input\":\"ask pi \\\\\"what is your stack\\\\\"\"}')",
-      "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}b\\\\n\" http://localhost:3000/resume.pdf)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}b\\\\n\" http://localhost:3000/resume.pdf)",
+      "Bash(unset GEMINI_API_KEY)",
+      "Bash(curl -sN -X POST http://localhost:3000/api/pi -H 'content-type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/pi -H 'content-type: application/json' -d '{\"messages\":[]}' -w '\\\\nHTTP %{http_code}\\\\n')",
+      "Bash(curl -s -X POST http://localhost:3000/api/pi -H 'content-type: application/json' -d '{\"messages\":[{\"role\":\"assistant\",\"content\":\"hi\"}]}' -w '\\\\nHTTP %{http_code}\\\\n')"
     ],
     "additionalDirectories": [
       "/Users/gincode/Downloads"

@@ -4,12 +4,15 @@ import { useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { profile } from "@/content/profile";
 import { useWindows } from "@/lib/store/windows";
+import { useSpotlight } from "@/lib/store/spotlight";
+import { usePi } from "@/lib/store/pi";
 import { APPS, DOCK_ORDER, type AppId } from "@/lib/apps/registry";
 import { WindowFrame } from "@/components/os/window";
 import { BootAnimation } from "@/components/os/boot-animation";
 import { Clock } from "@/components/os/clock";
 import { Spotlight } from "@/components/os/spotlight";
-import { useSpotlight } from "@/lib/store/spotlight";
+import { PiOverlay } from "@/components/os/pi/pi-overlay";
+import { PiOrb } from "@/components/os/pi/pi-orb";
 import { useOsShortcuts } from "@/lib/hooks/use-os-shortcuts";
 
 export function DesktopShell() {
@@ -23,6 +26,7 @@ export function DesktopShell() {
       <Windows />
       <Dock />
       <Spotlight />
+      <PiOverlay />
       {!booted && <BootAnimation onDone={() => setBooted(true)} />}
     </div>
   );
@@ -40,6 +44,7 @@ function MenuBar() {
       </div>
       <div className="flex items-center gap-3 opacity-90">
         <SpotlightTrigger />
+        <PiTrigger />
         <a
           href={profile.links.github}
           target="_blank"
@@ -72,6 +77,21 @@ function SpotlightTrigger() {
       title="Spotlight — ⌘K"
     >
       <span>⌘K</span>
+    </button>
+  );
+}
+
+function PiTrigger() {
+  const show = usePi((s) => s.show);
+  return (
+    <button
+      onClick={show}
+      className="flex items-center gap-1.5 rounded px-1.5 py-0.5 opacity-90 hover:bg-white/10"
+      aria-label="Open Pi"
+      title="Pi — ⌘Space"
+    >
+      <PiOrb size={14} />
+      <span>Pi</span>
     </button>
   );
 }
@@ -111,10 +131,8 @@ function Desktop() {
       <div className="pointer-events-none text-center">
         <h1 className="text-5xl font-semibold tracking-tight">Vishal OS</h1>
         <p className="mt-2 text-sm opacity-60">
-          Click an icon below, or press <kbd>⌘K</kbd> to ask Pi.
-        </p>
-        <p className="mt-1 text-[11px] opacity-40">
-          Drag windows by their title bar · ⌘W close · ⌘M minimize · Esc close
+          <kbd>⌘Space</kbd> to ask Pi · <kbd>⌘K</kbd> to search · click the dock
+          to open apps
         </p>
       </div>
     </button>
@@ -140,21 +158,39 @@ function Dock() {
   const windows = useWindows((s) => s.windows);
   const openApp = useWindows((s) => s.openApp);
   const focusWindow = useWindows((s) => s.focusWindow);
+  const showPi = usePi((s) => s.show);
+  const piOpen = usePi((s) => s.open);
 
   return (
     <div className="absolute inset-x-0 bottom-4 z-30 flex justify-center">
       <div className="flex gap-2 rounded-2xl border border-white/10 bg-black/40 px-3 py-2 backdrop-blur">
-        {DOCK_ORDER.map((appId) => {
-          const def = APPS[appId];
-          const open = windows.find((w) => w.appId === appId);
+        {DOCK_ORDER.map((id) => {
+          if (id === "pi") {
+            return (
+              <button
+                key="pi"
+                onClick={showPi}
+                className="group relative grid h-12 w-12 place-items-center rounded-xl bg-white/5 transition-all hover:scale-110 hover:bg-white/15"
+                aria-label="Pi"
+                title="Pi — ⌘Space"
+              >
+                <PiOrb size={30} active={piOpen} />
+                {piOpen && (
+                  <span className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-white/80" />
+                )}
+              </button>
+            );
+          }
+          const def = APPS[id];
+          const open = windows.find((w) => w.appId === id);
           return (
             <button
-              key={appId}
+              key={id}
               onClick={() => {
                 if (open) {
                   focusWindow(open.id);
                 } else {
-                  openApp(appId, {
+                  openApp(id, {
                     title: def.title,
                     width: def.width,
                     height: def.height,

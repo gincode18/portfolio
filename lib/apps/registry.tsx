@@ -7,7 +7,6 @@ import { ExperienceApp } from "@/components/os/apps/experience";
 import { SystemPreferencesApp } from "@/components/os/apps/system-preferences";
 import { TerminalApp } from "@/components/os/apps/terminal";
 import { PreviewApp } from "@/components/os/apps/preview";
-import { PiPlaceholderApp } from "@/components/os/apps/pi-placeholder";
 
 export type AppId =
   | "about"
@@ -15,8 +14,7 @@ export type AppId =
   | "experience"
   | "preview"
   | "system-preferences"
-  | "terminal"
-  | "pi";
+  | "terminal";
 
 export type AppDef = {
   id: AppId;
@@ -76,17 +74,13 @@ export const APPS: Record<AppId, AppDef> = {
     height: 600,
     render: () => <PreviewApp />,
   },
-  pi: {
-    id: "pi",
-    title: "Pi",
-    dockLabel: "Pi",
-    width: 560,
-    height: 420,
-    render: () => <PiPlaceholderApp />,
-  },
 };
 
-export const DOCK_ORDER: AppId[] = [
+/**
+ * Dock entries. "pi" is a special overlay (not a window) — see DOCK_ITEMS in
+ * the desktop shell for how it is wired.
+ */
+export const DOCK_ORDER: ("pi" | AppId)[] = [
   "pi",
   "terminal",
   "about",

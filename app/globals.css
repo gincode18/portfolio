@@ -128,3 +128,28 @@
     @apply font-sans;
   }
 }
+
+@keyframes pi-orb-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pi-orb-rotate-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.pi-orb-spin {
+  animation: pi-orb-rotate 8s linear infinite;
+}
+.pi-orb-spin-fast {
+  animation: pi-orb-rotate 2.4s linear infinite;
+}
+.pi-orb-spin-reverse {
+  animation: pi-orb-rotate-reverse 11s linear infinite;
+}
+.pi-orb-spin-reverse-fast {
+  animation: pi-orb-rotate-reverse 3.2s linear infinite;
+}

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSpotlight } from "@/lib/store/spotlight";
 import { useWindows } from "@/lib/store/windows";
+import { usePi } from "@/lib/store/pi";
 import { APPS } from "@/lib/apps/registry";
 import { spotlightSearch, type SpotlightHit } from "@/lib/spotlight/search";
 
@@ -11,6 +12,7 @@ export function Spotlight() {
   const open = useSpotlight((s) => s.open);
   const hide = useSpotlight((s) => s.hide);
   const openApp = useWindows((s) => s.openApp);
+  const showPi = usePi((s) => s.show);
 
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -31,12 +33,19 @@ export function Spotlight() {
   }, [query]);
 
   function commit(hit: SpotlightHit) {
-    const def = APPS[hit.openApp];
-    openApp(hit.openApp, {
-      title: def.title,
-      width: def.width,
-      height: def.height,
-    });
+    if (hit.action === "open-pi") {
+      hide();
+      showPi();
+      return;
+    }
+    if (hit.openApp) {
+      const def = APPS[hit.openApp];
+      openApp(hit.openApp, {
+        title: def.title,
+        width: def.width,
+        height: def.height,
+      });
+    }
     hide();
   }
 

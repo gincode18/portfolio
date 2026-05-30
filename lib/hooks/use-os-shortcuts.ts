@@ -3,13 +3,19 @@
 import { useEffect } from "react";
 import { useWindows } from "@/lib/store/windows";
 import { useSpotlight } from "@/lib/store/spotlight";
+import { usePi } from "@/lib/store/pi";
 
 export function useOsShortcuts() {
   const closeFocused = useWindows((s) => s.closeFocused);
   const minimizeFocused = useWindows((s) => s.minimizeFocused);
+
   const toggleSpotlight = useSpotlight((s) => s.toggle);
   const hideSpotlight = useSpotlight((s) => s.hide);
   const spotlightOpen = useSpotlight((s) => s.open);
+
+  const togglePi = usePi((s) => s.toggle);
+  const hidePi = usePi((s) => s.hide);
+  const piOpen = usePi((s) => s.open);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -20,14 +26,24 @@ export function useOsShortcuts() {
         target?.tagName === "TEXTAREA" ||
         (target as HTMLElement | null)?.isContentEditable;
 
-      // Spotlight: Cmd/Ctrl + K, or Cmd/Ctrl + Space.
-      if (meta && (e.key.toLowerCase() === "k" || e.code === "Space")) {
+      // Spotlight on Cmd/Ctrl+K.
+      if (meta && e.key.toLowerCase() === "k") {
         e.preventDefault();
+        if (piOpen) hidePi();
         toggleSpotlight();
         return;
       }
 
-      if (spotlightOpen) return; // Spotlight handles its own keys.
+      // Pi on Cmd/Ctrl+Space.
+      if (meta && e.code === "Space") {
+        e.preventDefault();
+        if (spotlightOpen) hideSpotlight();
+        togglePi();
+        return;
+      }
+
+      // Let overlays handle their own keys.
+      if (spotlightOpen || piOpen) return;
 
       if (meta && e.key.toLowerCase() === "w" && !isTyping) {
         e.preventDefault();
@@ -40,14 +56,19 @@ export function useOsShortcuts() {
         return;
       }
       if (e.key === "Escape" && !isTyping) {
-        if (spotlightOpen) {
-          hideSpotlight();
-        } else {
-          closeFocused();
-        }
+        closeFocused();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeFocused, minimizeFocused, toggleSpotlight, hideSpotlight, spotlightOpen]);
+  }, [
+    closeFocused,
+    minimizeFocused,
+    toggleSpotlight,
+    hideSpotlight,
+    spotlightOpen,
+    togglePi,
+    hidePi,
+    piOpen,
+  ]);
 }

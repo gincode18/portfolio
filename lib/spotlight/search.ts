@@ -7,8 +7,11 @@ export type SpotlightHit = {
   kind: "app" | "project" | "experience" | "action";
   title: string;
   subtitle?: string;
-  openApp: AppId;
-  /** Optional follow-up action after the app opens (e.g. select an item). */
+  /** Either opens a windowed app… */
+  openApp?: AppId;
+  /** …or triggers a non-window action. */
+  action?: "open-pi";
+  /** Optional follow-up after open (e.g. select an item). */
   selectId?: string;
   /** Higher = better. */
   score: number;
@@ -51,8 +54,8 @@ export function spotlightSearch(query: string): SpotlightHit[] {
       id: "action:ask-pi",
       kind: "action",
       title: "Ask Pi…",
-      subtitle: "AI assistant (coming in M3)",
-      openApp: "pi",
+      subtitle: "AI assistant — ⌘Space",
+      action: "open-pi",
       score: 0,
     },
     {
@@ -72,7 +75,9 @@ export function spotlightSearch(query: string): SpotlightHit[] {
     return [
       actions[0],
       actions[1],
-      ...apps.filter((a) => a.openApp === "about" || a.openApp === "projects"),
+      ...apps.filter(
+        (a) => a.openApp === "about" || a.openApp === "projects"
+      ),
     ].slice(0, 6);
   }
 

@@ -7,12 +7,14 @@ import { ExperienceApp } from "@/components/os/apps/experience";
 import { SystemPreferencesApp } from "@/components/os/apps/system-preferences";
 import { TerminalApp } from "@/components/os/apps/terminal";
 import { PreviewApp } from "@/components/os/apps/preview";
+import { NotesApp } from "@/components/os/apps/notes";
 
 export type AppId =
   | "about"
   | "projects"
   | "experience"
   | "preview"
+  | "notes"
   | "system-preferences"
   | "terminal";
 
@@ -74,6 +76,14 @@ export const APPS: Record<AppId, AppDef> = {
     height: 600,
     render: () => <PreviewApp />,
   },
+  notes: {
+    id: "notes",
+    title: "Notes",
+    dockLabel: "Notes",
+    width: 800,
+    height: 560,
+    render: () => <NotesApp />,
+  },
 };
 
 /**
@@ -86,6 +96,7 @@ export const DOCK_ORDER: ("pi" | AppId)[] = [
   "about",
   "projects",
   "experience",
+  "notes",
   "preview",
   "system-preferences",
 ];

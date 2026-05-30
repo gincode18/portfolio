@@ -6,6 +6,7 @@ export type PiMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
+  tools?: { label: string }[];
 };
 
 type PiStore = {
@@ -23,6 +24,7 @@ type PiStore = {
   pushUser: (text: string) => void;
   startAssistant: () => string; // returns the new assistant message id
   appendAssistant: (id: string, chunk: string) => void;
+  attachTool: (id: string, label: string) => void;
   finishAssistant: () => void;
   fail: (message: string) => void;
 };
@@ -58,6 +60,16 @@ export const usePi = create<PiStore>((set, get) => ({
     set((s) => ({
       messages: s.messages.map((m) =>
         m.id === id ? { ...m, text: m.text + chunk } : m
+      ),
+    }));
+  },
+
+  attachTool: (id, label) => {
+    set((s) => ({
+      messages: s.messages.map((m) =>
+        m.id === id
+          ? { ...m, tools: [...(m.tools ?? []), { label }] }
+          : m
       ),
     }));
   },

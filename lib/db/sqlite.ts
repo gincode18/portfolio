@@ -64,6 +64,13 @@ function runMigrations(db: Database.Database) {
         );
       `,
     },
+    {
+      version: 2,
+      sql: `
+        -- JSON blob with routing hints: {"kind":"project","id":"serenity-ai","title":"..."}
+        ALTER TABLE rag_chunks ADD COLUMN metadata TEXT NOT NULL DEFAULT '{}';
+      `,
+    },
   ];
 
   for (const { version, sql } of migrations) {

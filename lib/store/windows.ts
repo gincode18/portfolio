@@ -12,6 +12,7 @@ export type WindowState = {
   height: number;
   zIndex: number;
   minimized: boolean;
+  selectId?: string;
 };
 
 type WindowStore = {
@@ -21,7 +22,12 @@ type WindowStore = {
 
   openApp: (
     appId: string,
-    opts: { title: string; width?: number; height?: number }
+    opts: {
+      title: string;
+      width?: number;
+      height?: number;
+      selectId?: string;
+    }
   ) => string;
   closeWindow: (id: string) => void;
   focusWindow: (id: string) => void;
@@ -49,11 +55,19 @@ export const useWindows = create<WindowStore>((set, get) => ({
   zCounter: 10,
   spawnOffset: 0,
 
-  openApp: (appId, { title, width = DEFAULT_W, height = DEFAULT_H }) => {
+  openApp: (appId, { title, width = DEFAULT_W, height = DEFAULT_H, selectId }) => {
     const existing = get().windows.find((w) => w.appId === appId);
     if (existing) {
       get().focusWindow(existing.id);
       if (existing.minimized) get().restoreWindow(existing.id);
+      // Update selection if a new one was requested.
+      if (selectId !== undefined && selectId !== existing.selectId) {
+        set((s) => ({
+          windows: s.windows.map((w) =>
+            w.id === existing.id ? { ...w, selectId } : w
+          ),
+        }));
+      }
       return existing.id;
     }
 
@@ -77,6 +91,7 @@ export const useWindows = create<WindowStore>((set, get) => ({
           height,
           zIndex,
           minimized: false,
+          selectId,
         },
       ],
     }));
@@ -127,4 +142,12 @@ function topVisible(windows: WindowState[]) {
   return windows
     .filter((w) => !w.minimized)
     .sort((a, b) => b.zIndex - a.zIndex)[0];
+}
+
+/**
+ * Read the current selection (if any) for a given app. Returns the selectId
+ * passed to the most recent openApp call for this app.
+ */
+export function useAppSelection(appId: string): string | undefined {
+  return useWindows((s) => s.windows.find((w) => w.appId === appId)?.selectId);
 }

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePi } from "@/lib/store/pi";
 import { PiOrb } from "@/components/os/pi/pi-orb";
 import { parsePiStream } from "@/lib/pi/stream";
+import { applyToolCall } from "@/lib/pi/dispatch";
 
 const SUGGESTIONS = [
   "What did Vishal build at Markopolo?",
@@ -23,6 +24,7 @@ export function PiOverlay() {
   const pushUser = usePi((s) => s.pushUser);
   const startAssistant = usePi((s) => s.startAssistant);
   const appendAssistant = usePi((s) => s.appendAssistant);
+  const attachTool = usePi((s) => s.attachTool);
   const finishAssistant = usePi((s) => s.finishAssistant);
   const fail = usePi((s) => s.fail);
 
@@ -82,13 +84,15 @@ export function PiOverlay() {
       for await (const ev of parsePiStream(res.body)) {
         if (ev.type === "text") {
           appendAssistant(assistantId, ev.text);
+        } else if (ev.type === "tool") {
+          const result = applyToolCall(ev.name, ev.args);
+          if (result) attachTool(assistantId, result.label);
         } else if (ev.type === "error") {
           fail(ev.message);
           return;
         } else if (ev.type === "done") {
           break;
         }
-        // tool events are ignored in Pass A; Pass B will dispatch them
       }
       finishAssistant();
     } catch (err) {
@@ -134,7 +138,12 @@ export function PiOverlay() {
               >
                 <div className="space-y-3">
                   {messages.map((m) => (
-                    <ChatBubble key={m.id} role={m.role} text={m.text} />
+                    <ChatBubble
+                      key={m.id}
+                      role={m.role}
+                      text={m.text}
+                      tools={m.tools}
+                    />
                   ))}
                   {error && (
                     <div className="rounded-lg bg-rose-500/15 px-3 py-2 text-xs text-rose-200">
@@ -185,7 +194,7 @@ export function PiOverlay() {
                   <button
                     key={s}
                     onClick={() => send(s)}
-                    className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/70 backdrop-blur transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+                    className="rounded-full border border-white/10 bg-white/4 px-3 py-1 text-xs text-white/70 backdrop-blur transition hover:border-white/20 hover:bg-white/10 hover:text-white"
                   >
                     {s}
                   </button>
@@ -199,7 +208,15 @@ export function PiOverlay() {
   );
 }
 
-function ChatBubble({ role, text }: { role: "user" | "assistant"; text: string }) {
+function ChatBubble({
+  role,
+  text,
+  tools,
+}: {
+  role: "user" | "assistant";
+  text: string;
+  tools?: { label: string }[];
+}) {
   if (role === "user") {
     return (
       <div className="flex justify-end">
@@ -212,8 +229,33 @@ function ChatBubble({ role, text }: { role: "user" | "assistant"; text: string }
   return (
     <div className="flex gap-2">
       <PiOrb size={20} className="mt-0.5" />
-      <div className="min-w-0 flex-1 whitespace-pre-wrap text-white/90">
-        {text || <span className="text-white/40">…</span>}
+      <div className="min-w-0 flex-1 space-y-1.5">
+        {text ? (
+          <div className="whitespace-pre-wrap text-white/90">{text}</div>
+        ) : tools && tools.length > 0 ? null : (
+          <div className="text-white/40">…</div>
+        )}
+        {tools && tools.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {tools.map((t, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white/70"
+              >
+                <svg
+                  width="8"
+                  height="8"
+                  viewBox="0 0 8 8"
+                  className="opacity-70"
+                  aria-hidden
+                >
+                  <circle cx="4" cy="4" r="3" fill="currentColor" />
+                </svg>
+                {t.label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

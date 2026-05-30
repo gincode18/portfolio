@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { projects, type Project } from "@/content/projects";
+import { useAppSelection } from "@/lib/store/windows";
 
 export function ProjectsApp() {
-  const [selectedId, setSelectedId] = useState<string>(projects[0].id);
+  const externalSelect = useAppSelection("projects");
+  const [selectedId, setSelectedId] = useState<string>(
+    externalSelect ?? projects[0].id
+  );
+
+  useEffect(() => {
+    if (externalSelect) setSelectedId(externalSelect);
+  }, [externalSelect]);
+
   const selected = projects.find((p) => p.id === selectedId) ?? projects[0];
 
   return (

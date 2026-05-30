@@ -13,6 +13,9 @@ import { Clock } from "@/components/os/clock";
 import { Spotlight } from "@/components/os/spotlight";
 import { PiOverlay } from "@/components/os/pi/pi-overlay";
 import { PiOrb } from "@/components/os/pi/pi-orb";
+import { Wallpaper } from "@/components/os/wallpaper";
+import { WidgetStack } from "@/components/os/desktop/widget-stack";
+import { DockIcon } from "@/components/os/desktop/dock-icon";
 import { useOsShortcuts } from "@/lib/hooks/use-os-shortcuts";
 
 export function DesktopShell() {
@@ -20,8 +23,11 @@ export function DesktopShell() {
   useOsShortcuts();
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 text-white">
+    <div className="fixed inset-0 overflow-hidden text-white">
+      <Wallpaper variant="desktop" />
+
       <MenuBar />
+      <WidgetStack />
       <Desktop />
       <Windows />
       <Dock />
@@ -128,9 +134,9 @@ function Desktop() {
       }
       className="absolute inset-x-0 top-7 bottom-24 grid w-full place-items-center text-left"
     >
-      <div className="pointer-events-none text-center">
+      <div className="pointer-events-none text-center text-white drop-shadow-lg">
         <h1 className="text-5xl font-semibold tracking-tight">Vishal OS</h1>
-        <p className="mt-2 text-sm opacity-60">
+        <p className="mt-2 text-sm opacity-80">
           <kbd>⌘Space</kbd> to ask Pi · <kbd>⌘K</kbd> to search · click the dock
           to open apps
         </p>
@@ -163,49 +169,40 @@ function Dock() {
 
   return (
     <div className="absolute inset-x-0 bottom-4 z-30 flex justify-center">
-      <div className="flex gap-2 rounded-2xl border border-white/10 bg-black/40 px-3 py-2 backdrop-blur">
+      <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-black/40 px-3 py-2 backdrop-blur">
         {DOCK_ORDER.map((id) => {
           if (id === "pi") {
             return (
-              <button
+              <DockIcon
                 key="pi"
+                id="pi"
+                label="Pi"
+                active={piOpen}
+                open={piOpen}
                 onClick={showPi}
-                className="group relative grid h-12 w-12 place-items-center rounded-xl bg-white/5 transition-all hover:scale-110 hover:bg-white/15"
-                aria-label="Pi"
-                title="Pi — ⌘Space"
-              >
-                <PiOrb size={30} active={piOpen} />
-                {piOpen && (
-                  <span className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-white/80" />
-                )}
-              </button>
+              />
             );
           }
-          const def = APPS[id];
+          const def = APPS[id as AppId];
           const open = windows.find((w) => w.appId === id);
           return (
-            <button
+            <DockIcon
               key={id}
+              id={id as AppId}
+              label={def.dockLabel}
+              open={!!open}
               onClick={() => {
                 if (open) {
                   focusWindow(open.id);
                 } else {
-                  openApp(id, {
+                  openApp(id as AppId, {
                     title: def.title,
                     width: def.width,
                     height: def.height,
                   });
                 }
               }}
-              className="group relative grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-[10px] font-medium transition-all hover:scale-110 hover:bg-white/20"
-              aria-label={def.dockLabel}
-              title={def.dockLabel}
-            >
-              {def.dockLabel}
-              {open && (
-                <span className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-white/80" />
-              )}
-            </button>
+            />
           );
         })}
       </div>

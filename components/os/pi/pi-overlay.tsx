@@ -4,8 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { usePi } from "@/lib/store/pi";
 import { PiOrb } from "@/components/os/pi/pi-orb";
-import { parsePiStream } from "@/lib/pi/stream";
-import { applyToolCall } from "@/lib/pi/dispatch";
+import { usePiChat } from "@/lib/hooks/use-pi-chat";
 
 const SUGGESTIONS = [
   "What did Vishal build at Markopolo?",
@@ -21,25 +20,16 @@ export function PiOverlay() {
   const error = usePi((s) => s.error);
   const hide = usePi((s) => s.hide);
   const reset = usePi((s) => s.reset);
-  const pushUser = usePi((s) => s.pushUser);
-  const startAssistant = usePi((s) => s.startAssistant);
-  const appendAssistant = usePi((s) => s.appendAssistant);
-  const attachTool = usePi((s) => s.attachTool);
-  const finishAssistant = usePi((s) => s.finishAssistant);
-  const fail = usePi((s) => s.fail);
+
+  const { send } = usePiChat();
 
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 0);
   }, [open]);
-
-  useEffect(() => {
-    return () => abortRef.current?.abort();
-  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -48,63 +38,15 @@ export function PiOverlay() {
     });
   }, [messages]);
 
-  async function send(text: string) {
-    const trimmed = text.trim();
-    if (!trimmed || streaming) return;
-
-    pushUser(trimmed);
+  async function submit(text: string) {
     setDraft("");
-
-    const assistantId = startAssistant();
-
-    const history = [
-      ...usePi.getState().messages.filter((m) => m.id !== assistantId),
-    ].map((m) => ({ role: m.role, content: m.text }));
-
-    const ctrl = new AbortController();
-    abortRef.current?.abort();
-    abortRef.current = ctrl;
-
-    try {
-      const res = await fetch("/api/pi", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ messages: history }),
-        signal: ctrl.signal,
-      });
-
-      if (!res.ok || !res.body) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        fail(data.error ?? `HTTP ${res.status}`);
-        return;
-      }
-
-      for await (const ev of parsePiStream(res.body)) {
-        if (ev.type === "text") {
-          appendAssistant(assistantId, ev.text);
-        } else if (ev.type === "tool") {
-          const result = applyToolCall(ev.name, ev.args);
-          if (result) attachTool(assistantId, result.label);
-        } else if (ev.type === "error") {
-          fail(ev.message);
-          return;
-        } else if (ev.type === "done") {
-          break;
-        }
-      }
-      finishAssistant();
-    } catch (err) {
-      if ((err as Error).name === "AbortError") return;
-      fail((err as Error).message);
-    }
+    await send(text);
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send(draft);
+      submit(draft);
     } else if (e.key === "Escape") {
       e.preventDefault();
       hide();
@@ -193,7 +135,7 @@ export function PiOverlay() {
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
-                    onClick={() => send(s)}
+                    onClick={() => submit(s)}
                     className="rounded-full border border-white/10 bg-white/4 px-3 py-1 text-xs text-white/70 backdrop-blur transition hover:border-white/20 hover:bg-white/10 hover:text-white"
                   >
                     {s}

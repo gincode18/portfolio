@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
     "/api/**/*": ["./node_modules/sqlite-vec-*/**"],
     "/": ["./node_modules/sqlite-vec-*/**"],
   },
+  allowedDevOrigins: ["192.168.29.47"],
 };
 
 export default nextConfig;

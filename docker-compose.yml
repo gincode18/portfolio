@@ -1,0 +1,55 @@
+# Vishal OS portfolio — self-hosted compose file.
+#
+# Tuned for a single-user Raspberry Pi 5 deployment behind a Cloudflare Tunnel,
+# but works identically on any Linux box with Docker.
+#
+#   docker compose up -d --build
+#   docker compose logs -f
+#   docker compose down
+#
+# This file lives at the repo root for parity with the Serenity v2 setup. For a
+# full stack that also runs cloudflared as a sibling container, see
+# infra/docker-compose.prod.yml.
+
+services:
+  portfolio:
+    container_name: portfolio
+    build:
+      context: .
+      dockerfile: infra/Dockerfile
+    # The container listens on 3000 internally; we expose it on 3003 on the
+    # host because Serenity v2 already runs on 3002. Point the Cloudflare
+    # Tunnel at 127.0.0.1:3003.
+    ports:
+      - "3003:3000"
+
+    # All secrets + config live in .env.local on the host. The compose file
+    # itself stays committable (no keys baked in).
+    env_file:
+      - .env.local
+
+    # The DB inside the container lives at /data/portfolio.db (set by the
+    # Dockerfile via SQLITE_PATH). We bind-mount the host's ./data into the
+    # container so the file persists across rebuilds. The same directory is
+    # what the nightly backup cron rsyncs off-box.
+    volumes:
+      - ./data:/data
+
+    restart: unless-stopped
+
+    # If the container goes unhealthy, Docker will restart it (paired with
+    # restart: unless-stopped above). /healthz also checks that SQLite +
+    # sqlite-vec are loadable, so this catches DB regressions too.
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+    # Keep container logs bounded so the Pi's SD card doesn't fill up.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

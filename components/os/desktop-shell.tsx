@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { profile } from "@/content/profile";
-import { useWindows } from "@/lib/store/windows";
+import { useWindows, useFocusedAppId } from "@/lib/store/windows";
 import { useSpotlight } from "@/lib/store/spotlight";
 import { usePi } from "@/lib/store/pi";
-import { APPS, DOCK_ORDER, type AppId } from "@/lib/apps/registry";
+import { useDesktopShell } from "@/lib/store/desktop-shell";
+import { APPS, type AppId } from "@/lib/apps/registry";
 import { WindowFrame } from "@/components/os/window";
 import { BootAnimation } from "@/components/os/boot-animation";
 import { Clock } from "@/components/os/clock";
@@ -15,11 +16,13 @@ import { PiOverlay } from "@/components/os/pi/pi-overlay";
 import { PiOrb } from "@/components/os/pi/pi-orb";
 import { Wallpaper } from "@/components/os/wallpaper";
 import { WidgetStack } from "@/components/os/desktop/widget-stack";
-import { DockIcon } from "@/components/os/desktop/dock-icon";
+import { Dock } from "@/components/os/desktop/dock";
+import { DesktopLockScreen } from "@/components/os/desktop/lock-screen";
 import { useOsShortcuts } from "@/lib/hooks/use-os-shortcuts";
 
 export function DesktopShell() {
   const [booted, setBooted] = useState(false);
+  const locked = useDesktopShell((s) => s.locked);
   useOsShortcuts();
 
   return (
@@ -33,16 +36,28 @@ export function DesktopShell() {
       <Dock />
       <Spotlight />
       <PiOverlay />
+
+      <AnimatePresence>
+        {booted && locked && <DesktopLockScreen key="desktop-lock" />}
+      </AnimatePresence>
+
       {!booted && <BootAnimation onDone={() => setBooted(true)} />}
     </div>
   );
 }
 
 function MenuBar() {
+  const focusedAppId = useFocusedAppId();
+  const focusedName =
+    focusedAppId && focusedAppId in APPS
+      ? APPS[focusedAppId as AppId].dockLabel
+      : "Vishal OS";
+
   return (
     <div className="absolute inset-x-0 top-0 z-30 flex h-7 items-center justify-between border-b border-white/10 bg-black/40 px-4 text-xs backdrop-blur">
       <div className="flex items-center gap-4">
-        <span className="font-semibold">Vishal OS</span>
+        <AppleMark />
+        <span className="font-semibold">{focusedName}</span>
         <MenuLink appId="about" label="About" />
         <MenuLink appId="projects" label="Projects" />
         <MenuLink appId="experience" label="Experience" />
@@ -51,6 +66,7 @@ function MenuBar() {
       <div className="flex items-center gap-3 opacity-90">
         <SpotlightTrigger />
         <PiTrigger />
+        <LockButton />
         <a
           href={profile.links.github}
           target="_blank"
@@ -70,6 +86,18 @@ function MenuBar() {
         <Clock />
       </div>
     </div>
+  );
+}
+
+function AppleMark() {
+  // Stylized "V" for Vishal, sized to match the menu-bar height.
+  return (
+    <span
+      aria-hidden
+      className="grid h-4 w-4 place-items-center font-mono text-[10px] font-bold leading-none text-white/85"
+    >
+      V
+    </span>
   );
 }
 
@@ -98,6 +126,23 @@ function PiTrigger() {
     >
       <PiOrb size={14} />
       <span>Pi</span>
+    </button>
+  );
+}
+
+function LockButton() {
+  const lock = useDesktopShell((s) => s.lock);
+  return (
+    <button
+      onClick={lock}
+      className="opacity-70 hover:opacity-100"
+      aria-label="Lock screen"
+      title="Lock"
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="4" y="11" width="16" height="10" rx="2" />
+        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+      </svg>
     </button>
   );
 }
@@ -148,64 +193,16 @@ function Desktop() {
 function Windows() {
   const windows = useWindows((s) => s.windows);
   return (
+    // The container is pointer-events:none so empty areas (no window above
+    // this pixel) fall through to the widget stack / desktop / dock. Each
+    // <WindowFrame> sets pointer-events:auto on itself so the window content
+    // still captures clicks.
     <div className="pointer-events-none absolute inset-0 z-10">
-      <div className="pointer-events-auto relative h-full w-full">
-        <AnimatePresence>
-          {windows.map((w) => (
-            <WindowFrame key={w.id} window={w} />
-          ))}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
-
-function Dock() {
-  const windows = useWindows((s) => s.windows);
-  const openApp = useWindows((s) => s.openApp);
-  const focusWindow = useWindows((s) => s.focusWindow);
-  const showPi = usePi((s) => s.show);
-  const piOpen = usePi((s) => s.open);
-
-  return (
-    <div className="absolute inset-x-0 bottom-4 z-30 flex justify-center">
-      <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-black/40 px-3 py-2 backdrop-blur">
-        {DOCK_ORDER.map((id) => {
-          if (id === "pi") {
-            return (
-              <DockIcon
-                key="pi"
-                id="pi"
-                label="Pi"
-                active={piOpen}
-                open={piOpen}
-                onClick={showPi}
-              />
-            );
-          }
-          const def = APPS[id as AppId];
-          const open = windows.find((w) => w.appId === id);
-          return (
-            <DockIcon
-              key={id}
-              id={id as AppId}
-              label={def.dockLabel}
-              open={!!open}
-              onClick={() => {
-                if (open) {
-                  focusWindow(open.id);
-                } else {
-                  openApp(id as AppId, {
-                    title: def.title,
-                    width: def.width,
-                    height: def.height,
-                  });
-                }
-              }}
-            />
-          );
-        })}
-      </div>
+      <AnimatePresence>
+        {windows.map((w) => (
+          <WindowFrame key={w.id} window={w} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

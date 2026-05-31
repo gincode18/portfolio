@@ -8,6 +8,8 @@ import { SystemPreferencesApp } from "@/components/os/apps/system-preferences";
 import { TerminalApp } from "@/components/os/apps/terminal";
 import { PreviewApp } from "@/components/os/apps/preview";
 import { NotesApp } from "@/components/os/apps/notes";
+import { VSCodeApp } from "@/components/os/apps/vscode/vscode";
+import { MailApp } from "@/components/os/apps/mail";
 
 export type AppId =
   | "about"
@@ -15,6 +17,8 @@ export type AppId =
   | "experience"
   | "preview"
   | "notes"
+  | "vscode"
+  | "mail"
   | "system-preferences"
   | "terminal";
 
@@ -84,19 +88,35 @@ export const APPS: Record<AppId, AppDef> = {
     height: 560,
     render: () => <NotesApp />,
   },
+  vscode: {
+    id: "vscode",
+    title: "Visual Studio Code — portfolio",
+    dockLabel: "VS Code",
+    width: 900,
+    height: 600,
+    render: () => <VSCodeApp />,
+  },
+  mail: {
+    id: "mail",
+    title: "Mail",
+    dockLabel: "Mail",
+    width: 560,
+    height: 540,
+    render: () => <MailApp />,
+  },
 };
 
 /**
- * Dock entries. "pi" is a special overlay (not a window) — see DOCK_ITEMS in
- * the desktop shell for how it is wired.
+ * Dock entries. Pi and About both have widgets on the desktop, so they are
+ * not in the dock to keep it light. Pi is also bound to ⌘Space.
  */
-export const DOCK_ORDER: ("pi" | AppId)[] = [
-  "pi",
+export const DOCK_ORDER: AppId[] = [
+  "vscode",
   "terminal",
-  "about",
   "projects",
   "experience",
   "notes",
   "preview",
+  "mail",
   "system-preferences",
 ];

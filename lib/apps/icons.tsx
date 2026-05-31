@@ -1,4 +1,5 @@
 import type { AppId } from "@/lib/apps/registry";
+import { VSCodeIcon } from "@/lib/icons/brands";
 
 export type AppIconKey = AppId | "pi";
 
@@ -134,6 +135,25 @@ const documentPdf = (size: number) => (
   </svg>
 );
 
+const vscodeLogo = (size: number) => <VSCodeIcon size={size} />;
+
+const envelope = (size: number) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <polyline points="3 7 12 13 21 7" />
+  </svg>
+);
+
 const piPlaceholder = (size: number) => (
   // Placeholder used by the icon system in places where Pi is shown like an
   // ordinary app. The live, rotating orb is rendered by <PiOrb /> directly in
@@ -192,5 +212,17 @@ export const APP_ICONS: Record<AppIconKey, AppIconConfig> = {
     gradient: "bg-linear-to-br from-slate-400 to-slate-700",
     fg: "text-white",
     glyph: gear,
+  },
+  vscode: {
+    // The brand SVG carries its own blue gradient — use a neutral dark base so
+    // the official mark stays recognizable instead of being washed out.
+    gradient: "bg-linear-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900",
+    fg: "text-white",
+    glyph: vscodeLogo,
+  },
+  mail: {
+    gradient: "bg-linear-to-br from-cyan-400 to-blue-500",
+    fg: "text-white",
+    glyph: envelope,
   },
 };

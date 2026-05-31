@@ -1,13 +1,13 @@
 "use client";
 
 import { motion, type PanInfo } from "motion/react";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useMobileShell } from "@/lib/store/mobile-shell";
 import { usePi } from "@/lib/store/pi";
 import { StatusBar } from "@/components/os/mobile/status-bar";
 import { PhotoWidget } from "@/components/os/mobile/photo-widget";
 import { PiWidget } from "@/components/os/mobile/pi-widget";
+import { Wallpaper } from "@/components/os/wallpaper";
 
 const SWIPE_UP_THRESHOLD = 80;
 
@@ -54,15 +54,8 @@ export function LockScreen() {
       className="absolute inset-0 z-20 flex flex-col overflow-hidden"
     >
       {/* wallpaper */}
-      <Image
-        src="/profile-photo.jpeg"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover blur-xl brightness-50 saturate-110"
-      />
-      <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/60" />
+      <Wallpaper variant="phone" tint={0.25} />
+      <div className="absolute inset-0 bg-linear-to-b from-black/30 via-black/10 to-black/50" />
 
       {/* foreground */}
       <div className="relative z-10 flex flex-1 flex-col text-white">

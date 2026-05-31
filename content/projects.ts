@@ -26,7 +26,7 @@ export const projects: Project[] = [
       "Personalized recommendations driven by Gemini with persistent user context.",
     ],
     links: {
-      github: "https://github.com/gincode18",
+      github: "https://github.com/gincode18/serenity-v2",
     },
     award: "2nd Place / 11,000+ — Amdocs GenAI Hackathon 2025",
   },
@@ -50,7 +50,8 @@ export const projects: Project[] = [
       "Network-wide ad-blocking via Pi-hole; NAS over Samba; secure remote access via Tailscale.",
     ],
     links: {
-      github: "https://github.com/gincode18",
+      github: "https://github.com/gincode18/pi-home-lab",
+      video: "https://github.com/gincode18/pi-home-lab-video",
     },
   },
   {
@@ -65,7 +66,7 @@ export const projects: Project[] = [
       "End-to-end type safety with tRPC between Next.js client and server.",
     ],
     links: {
-      github: "https://github.com/gincode18",
+      github: "https://github.com/gincode18/NextTube",
     },
   },
   {
@@ -80,7 +81,7 @@ export const projects: Project[] = [
       "Per-form submission storage and admin views.",
     ],
     links: {
-      github: "https://github.com/gincode18",
+      github: "https://github.com/gincode18/FormWave",
     },
   },
 ];

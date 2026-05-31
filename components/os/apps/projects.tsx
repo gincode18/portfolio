@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { projects, type Project } from "@/content/projects";
-import { useAppSelection } from "@/lib/store/windows";
+import { useAppSelection, useWindows } from "@/lib/store/windows";
+import { APPS } from "@/lib/apps/registry";
+import { parseGithubRepoUrl } from "@/lib/github/parse";
 
 export function ProjectsApp() {
   const externalSelect = useAppSelection("projects");
@@ -46,6 +48,9 @@ export function ProjectsApp() {
 }
 
 function ProjectDetail({ project }: { project: Project }) {
+  const openApp = useWindows((s) => s.openApp);
+  const repo = parseGithubRepoUrl(project.links.github);
+
   return (
     <div className="overflow-y-auto p-6">
       <div className="mb-4">
@@ -85,7 +90,24 @@ function ProjectDetail({ project }: { project: Project }) {
         ))}
       </div>
 
-      <div className="flex gap-4 text-xs">
+      <div className="flex flex-wrap items-center gap-3 text-xs">
+        {repo && (
+          <button
+            onClick={() => {
+              const def = APPS.vscode;
+              openApp("vscode", {
+                title: def.title,
+                width: def.width,
+                height: def.height,
+                selectId: `${repo.owner}/${repo.repo}`,
+              });
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md bg-foreground px-2.5 py-1 text-background hover:opacity-90"
+          >
+            <CodeIcon />
+            Open in VS Code
+          </button>
+        )}
         {project.links.demo && (
           <a
             href={project.links.demo}
@@ -93,7 +115,7 @@ function ProjectDetail({ project }: { project: Project }) {
             rel="noreferrer"
             className="underline-offset-4 hover:underline"
           >
-            Live demo
+            Live demo ↗
           </a>
         )}
         {project.links.github && (
@@ -103,7 +125,7 @@ function ProjectDetail({ project }: { project: Project }) {
             rel="noreferrer"
             className="underline-offset-4 hover:underline"
           >
-            GitHub
+            GitHub ↗
           </a>
         )}
         {project.links.video && (
@@ -113,10 +135,29 @@ function ProjectDetail({ project }: { project: Project }) {
             rel="noreferrer"
             className="underline-offset-4 hover:underline"
           >
-            Video
+            Video ↗
           </a>
         )}
       </div>
     </div>
+  );
+}
+
+function CodeIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+    </svg>
   );
 }

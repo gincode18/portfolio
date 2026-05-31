@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 
+type Bounds = { x: number; y: number; width: number; height: number };
+
 export type WindowState = {
   id: string;
   appId: string;
@@ -12,6 +14,8 @@ export type WindowState = {
   height: number;
   zIndex: number;
   minimized: boolean;
+  maximized: boolean;
+  prevBounds: Bounds | null;
   selectId?: string;
 };
 
@@ -34,8 +38,16 @@ type WindowStore = {
   moveWindow: (id: string, x: number, y: number) => void;
   minimizeWindow: (id: string) => void;
   restoreWindow: (id: string) => void;
+  toggleMaximize: (id: string) => void;
+  setBounds: (id: string, b: Bounds) => void;
   closeFocused: () => void;
   minimizeFocused: () => void;
+
+  /**
+   * macOS-style dock click. Visible+focused → minimize. Minimized → restore.
+   * Visible-but-blurred → focus. Not open → caller should openApp instead.
+   */
+  toggleFromDock: (id: string) => "missing" | "minimized" | "restored" | "focused";
 };
 
 const DEFAULT_W = 720;
@@ -60,7 +72,6 @@ export const useWindows = create<WindowStore>((set, get) => ({
     if (existing) {
       get().focusWindow(existing.id);
       if (existing.minimized) get().restoreWindow(existing.id);
-      // Update selection if a new one was requested.
       if (selectId !== undefined && selectId !== existing.selectId) {
         set((s) => ({
           windows: s.windows.map((w) =>
@@ -91,6 +102,8 @@ export const useWindows = create<WindowStore>((set, get) => ({
           height,
           zIndex,
           minimized: false,
+          maximized: false,
+          prevBounds: null,
           selectId,
         },
       ],
@@ -127,6 +140,48 @@ export const useWindows = create<WindowStore>((set, get) => ({
 
   restoreWindow: (id) => get().focusWindow(id),
 
+  toggleMaximize: (id) =>
+    set((s) => {
+      const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+      const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+      const top = s.zCounter + 1;
+
+      return {
+        zCounter: top,
+        windows: s.windows.map((w) => {
+          if (w.id !== id) return w;
+          if (w.maximized && w.prevBounds) {
+            return {
+              ...w,
+              x: w.prevBounds.x,
+              y: w.prevBounds.y,
+              width: w.prevBounds.width,
+              height: w.prevBounds.height,
+              maximized: false,
+              prevBounds: null,
+              zIndex: top,
+            };
+          }
+          return {
+            ...w,
+            prevBounds: { x: w.x, y: w.y, width: w.width, height: w.height },
+            x: 0,
+            y: 28, // below menu bar
+            width: vw,
+            height: vh - 28 - 96, // minus menu bar (28) and dock area (96)
+            maximized: true,
+            minimized: false,
+            zIndex: top,
+          };
+        }),
+      };
+    }),
+
+  setBounds: (id, b) =>
+    set((s) => ({
+      windows: s.windows.map((w) => (w.id === id ? { ...w, ...b } : w)),
+    })),
+
   closeFocused: () => {
     const top = topVisible(get().windows);
     if (top) get().closeWindow(top.id);
@@ -135,6 +190,22 @@ export const useWindows = create<WindowStore>((set, get) => ({
   minimizeFocused: () => {
     const top = topVisible(get().windows);
     if (top) get().minimizeWindow(top.id);
+  },
+
+  toggleFromDock: (appId) => {
+    const w = get().windows.find((x) => x.appId === appId);
+    if (!w) return "missing";
+    if (w.minimized) {
+      get().restoreWindow(w.id);
+      return "restored";
+    }
+    const focusedTop = topVisible(get().windows);
+    if (focusedTop?.id === w.id) {
+      get().minimizeWindow(w.id);
+      return "minimized";
+    }
+    get().focusWindow(w.id);
+    return "focused";
   },
 }));
 
@@ -150,4 +221,17 @@ function topVisible(windows: WindowState[]) {
  */
 export function useAppSelection(appId: string): string | undefined {
   return useWindows((s) => s.windows.find((w) => w.appId === appId)?.selectId);
+}
+
+/**
+ * Returns the appId of the topmost non-minimized window, or null if no window
+ * is focused. Used by the menu bar to show the active app name (macOS feel).
+ */
+export function useFocusedAppId(): string | null {
+  return useWindows((s) => {
+    const top = s.windows
+      .filter((w) => !w.minimized)
+      .sort((a, b) => b.zIndex - a.zIndex)[0];
+    return top?.appId ?? null;
+  });
 }

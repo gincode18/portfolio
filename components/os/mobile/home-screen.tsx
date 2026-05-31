@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { APPS, DOCK_ORDER, type AppId } from "@/lib/apps/registry";
+import { APPS, DOCK_ORDER } from "@/lib/apps/registry";
 import { useMobileShell } from "@/lib/store/mobile-shell";
 import { usePi } from "@/lib/store/pi";
 import { StatusBar } from "@/components/os/mobile/status-bar";
@@ -9,6 +8,7 @@ import { HomeIndicator } from "@/components/os/mobile/home-indicator";
 import { PhotoWidget } from "@/components/os/mobile/photo-widget";
 import { PiWidget } from "@/components/os/mobile/pi-widget";
 import { AppIcon } from "@/components/os/mobile/app-icon";
+import { Wallpaper } from "@/components/os/wallpaper";
 
 export function HomeScreen() {
   const openApp = useMobileShell((s) => s.openApp);
@@ -16,16 +16,9 @@ export function HomeScreen() {
 
   return (
     <div className="absolute inset-0 z-10 flex flex-col overflow-hidden">
-      {/* wallpaper — soft blurred photo */}
-      <Image
-        src="/profile-photo.jpeg"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover blur-2xl brightness-50 saturate-110"
-      />
-      <div className="absolute inset-0 bg-linear-to-b from-indigo-950/60 via-slate-900/40 to-black/70" />
+      {/* wallpaper */}
+      <Wallpaper variant="phone" tint={0.2} />
+      <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/0 to-black/55" />
 
       <div className="relative z-10 flex flex-1 flex-col text-white">
         <StatusBar tint="light" />
@@ -40,23 +33,13 @@ export function HomeScreen() {
           {/* App grid */}
           <div className="mt-6 grid grid-cols-4 gap-x-4 gap-y-5">
             {DOCK_ORDER.map((id) => {
-              if (id === "pi") {
-                return (
-                  <AppIcon
-                    key="pi"
-                    id="pi"
-                    label="Pi"
-                    onClick={() => showPi()}
-                  />
-                );
-              }
-              const def = APPS[id as AppId];
+              const def = APPS[id];
               return (
                 <AppIcon
                   key={id}
-                  id={id as AppId}
+                  id={id}
                   label={def.dockLabel}
-                  onClick={() => openApp(id as AppId)}
+                  onClick={() => openApp(id)}
                 />
               );
             })}

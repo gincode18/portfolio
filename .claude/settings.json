@@ -32,7 +32,21 @@
       "Bash(curl -s -X POST http://localhost:3000/api/pi -H 'content-type: application/json' -d '{\"messages\":[{\"role\":\"assistant\",\"content\":\"hi\"}]}' -w '\\\\nHTTP %{http_code}\\\\n')",
       "Bash(pnpm db:smoke)",
       "Bash(pnpm drizzle-kit *)",
-      "Bash(pnpm db:migrate)"
+      "Bash(pnpm db:migrate)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(pnpm vscode:bundle)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(r['name']\\) for r in d]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(r['name']\\) for r in d if any\\(k in r['name'].lower\\(\\) for k in ['form','tube','next','wave','serenity','pi-home','homelab']\\)]\")",
+      "Bash(curl -s 'http://localhost:3000/api/github/tree?owner=gincode18&repo=NextTube')",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('default branch:', d.get\\('meta',{}\\).get\\('defaultBranch'\\)\\); print\\('entries:', len\\(d.get\\('entries',[]\\)\\)\\); print\\('first 5:', [e['path'] for e in d.get\\('entries',[]\\)[:5]]\\)\")",
+      "Bash(curl -s 'http://localhost:3000/api/github/file?owner=gincode18&repo=NextTube&path=README.md')",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('lang:', d.get\\('lang'\\)\\); print\\('lines:', d.get\\('lines'\\)\\); print\\('html len:', len\\(d.get\\('html',''\\)\\)\\)\")",
+      "Bash(curl -s 'http://localhost:3000/api/github/file?owner=gincode18&repo=NextTube&path=package.json')",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('lang:', d.get\\('lang'\\)\\); print\\('lines:', d.get\\('lines'\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"tree 404: %{http_code}\\\\n\" 'http://localhost:3000/api/github/tree?owner=gincode18&repo=this-does-not-exist')",
+      "Bash(pnpm remove *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('binary:', d.get\\('binary'\\), '/ lang:', d.get\\('lang'\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" http://localhost:3000/)"
     ],
     "additionalDirectories": [
       "/Users/gincode/Downloads"

@@ -8,10 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "ingest": "tsx scripts/ingest.ts",
-    "db:smoke": "tsx scripts/db-smoke.ts",
+    "ingest": "tsx --env-file=.env.local --env-file-if-exists=.env scripts/ingest.ts",
+    "db:smoke": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/db-smoke.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/db-migrate.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

@@ -34,19 +34,22 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV SQLITE_PATH=/data/portfolio.db
 
-RUN addgroup --system --gid 1001 nodejs \
-    && adduser --system --uid 1001 --ingroup nodejs nextjs \
-    && mkdir -p /data && chown -R nextjs:nodejs /data
+# Use the built-in `node` user (uid 1000) that ships with node:bookworm-slim
+# rather than creating a fresh user. uid 1000 is also the typical uid of the
+# first interactive user on a Raspberry Pi (`pi`, `gincode`, etc.), so when a
+# host directory is bind-mounted at /data the container can write to it
+# without any chown gymnastics.
+RUN mkdir -p /data && chown -R node:node /data
 
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/public ./public
 
 # Native modules (better-sqlite3, sqlite-vec) and the platform-matching
 # sqlite-vec-* binary are bundled into .next/standalone by Next.js tracing —
 # see outputFileTracingIncludes in next.config.ts.
 
-USER nextjs
+USER node
 EXPOSE 3000
 VOLUME ["/data"]
 
